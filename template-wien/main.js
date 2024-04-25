@@ -15,11 +15,11 @@ let startLayer = L.tileLayer.provider("BasemapAT.grau");
 startLayer.addTo(map);
 
 let themaLayer = {
-  sights: L.featureGroup(),
-  lines: L.featureGroup(),
+  sights: L.featureGroup().addTo(map),
+  lines: L.featureGroup().addTo(map),
   stops: L.featureGroup().addTo(map),
-  zones: L.featureGroup(),
-  hotels: L.featureGroup(),
+  zones: L.featureGroup().addTo(map),
+  hotels: L.markerClusterGroup().addTo(map),
 }
 // Hintergrundlayer
 L.control
@@ -191,11 +191,39 @@ loadZones("https://data.wien.gv.at/daten/geo?service=WFS&request=GetFeature&vers
 
 //Hotels und Unterkünfte
 async function loadHotels(url) {
-  console.log("Loading", url);
+  // console.log("Loading", url);
   let response = await fetch(url);
   let geojson = await response.json();
-  console.log(geojson);
+  // console.log(geojson);
   L.geoJSON(geojson, {
+    pointToLayer: function (feature, latlng) {
+      let hotelKat = feature.properties.KATEGORIE_TXT;
+      let iconName;
+      console.log(hotelKat)
+      if (hotelKat == "nicht kategorisiert") {
+        iconName = "hotel_0star";
+      } else if (hotelKat == "1*") {
+        iconName = "hotel_1star";
+      } else if (hotelKat == "2*") {
+        iconName = "hotel_2stars";
+      } else if (hotelKat == "3*") {
+        iconName = "hotel_3stars";
+      } else if (hotelKat == "4*") {
+        iconName = "hotel_4stars";
+      } else if (hotelKat == "5*") {
+        iconName = "hotel_5stars";
+      } else {
+        // falls 6.
+      }
+      return L.marker(latlng, {
+        icon: L.icon({
+          iconUrl: `icons/${iconName}.png`,
+          iconAnchor: [16, 37],
+          popupAnchor: [0, -37]
+        })
+      });
+      
+    },
     onEachFeature: function (feature, layer) {
       console.log(feature);
       console.log(feature.properties.NAME);
