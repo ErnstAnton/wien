@@ -15,10 +15,10 @@ let startLayer = L.tileLayer.provider("BasemapAT.grau");
 startLayer.addTo(map);
 
 let themaLayer = {
-  sights: L.featureGroup(),
+  sights: L.featureGroup().addTo(map),
   lines: L.featureGroup(),
   stops: L.featureGroup(),
-  zones: L.featureGroup().addTo(map),
+  zones: L.featureGroup(),
   hotels: L.featureGroup(),
 }
 // Hintergrundlayer
@@ -61,14 +61,23 @@ L.control
 
 //Sehenswürdigkeiten
 async function loadSights(url) {
-  console.log("Loading", url);
+  // console.log("Loading", url);
   let response = await fetch(url);
   let geojson = await response.json();
-  console.log(geojson);
+  // console.log(geojson);
   L.geoJSON(geojson, {
+    pointToLayer: function(feature, latlng) {
+      return L.marker(latlng, {
+        icon: L.icon({
+          iconUrl: "icons/photo.png",
+          iconAnchor: [16, 37],
+          popupAnchor: [0, -37]
+        })
+      });
+    },
     onEachFeature: function (feature, layer) {
-      console.log(feature);
-      console.log(feature.properties.NAME);
+      // console.log(feature);
+      // console.log(feature.properties.NAME);
       layer.bindPopup(`
               <img src="${feature.properties.THUMBNAIL}" alt="*">
               <h4><a href="${feature.properties.WEITERE_INF}" target="wien">${feature.properties.NAME}</a></h4>
@@ -86,6 +95,30 @@ async function loadLines(url) {
   let geojson = await response.json();
   console.log(geojson);
   L.geoJSON(geojson, {
+    style:function(feature) {
+      // console.log(feature.properties.LINE_NAME);
+      let lineName = feature.properties.LINE_NAME;
+      let lineColor ="black";
+      if (lineName == "Red Line") {
+        lineColor = "#FF4136"
+      } else if (lineName == "Yellow Line") {
+        lineColor = "#FFDC00";
+      } else if (lineName == "Orange Line") {
+        lineColor = "#FF851B";
+      } else if (lineName == "Blue Line") {
+        lineColor = "#0074D9";
+      } else if (lineName == "Green Line") {
+        lineColor = "#2ECC40";
+      } else if (lineName == "Grey Line") {
+        lineColor = "#AAAAAA";
+      } else {
+        // vielleicht kommen noch Linien dazu
+      }
+
+      return {
+        color: lineColor,
+      };
+    },
     onEachFeature: function (feature, layer) {
       console.log(feature);
       console.log(feature.properties.LINE_NAME);
